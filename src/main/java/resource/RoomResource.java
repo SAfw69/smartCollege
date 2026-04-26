@@ -46,7 +46,6 @@ public class RoomResource {
 
         Room room = rooms.get(id);
 
-        // block deletion if sensors exist
         if (!room.getSensorIds().isEmpty()) {
             throw new RuntimeException("Room not empty");
         }
@@ -55,7 +54,6 @@ public class RoomResource {
         return Response.ok().build();
     }
 
-    // allow other classes to access rooms
     public static Map<String, Room> getRooms() {
         return rooms;
     }
