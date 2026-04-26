@@ -5,14 +5,15 @@
 package config;
 
 import jakarta.ws.rs.ApplicationPath;
-import jakarta.ws.rs.core.Application;
-
+import org.glassfish.jersey.server.ResourceConfig;
 /**
  *
  * @author poema
  */
 
 @ApplicationPath("/api/v1")
-public class AppConfig extends Application {
-    
+public class AppConfig extends ResourceConfig {
+    public AppConfig() {
+        packages("resource", "mapper", "filter");
+    }
 }
