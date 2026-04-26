@@ -21,21 +21,28 @@
         <version>3.1.0</version>
     </dependency>
 
-    <!-- Jersey Server -->
+    <!-- Jersey Core -->
     <dependency>
         <groupId>org.glassfish.jersey.core</groupId>
         <artifactId>jersey-server</artifactId>
         <version>3.1.5</version>
     </dependency>
 
-    <!-- JSON (VERY IMPORTANT) -->
+    <!-- REQUIRED: Dependency Injection system (THIS FIXES YOUR ERROR) -->
+    <dependency>
+        <groupId>org.glassfish.jersey.inject</groupId>
+        <artifactId>jersey-hk2</artifactId>
+        <version>3.1.5</version>
+    </dependency>
+
+    <!-- JSON support -->
     <dependency>
         <groupId>org.glassfish.jersey.media</groupId>
         <artifactId>jersey-media-json-jackson</artifactId>
         <version>3.1.5</version>
     </dependency>
 
-    <!-- Embedded Server (Grizzly) -->
+    <!-- Grizzly server -->
     <dependency>
         <groupId>org.glassfish.jersey.containers</groupId>
         <artifactId>jersey-container-grizzly2-http</artifactId>
