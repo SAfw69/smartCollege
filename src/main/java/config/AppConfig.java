@@ -4,10 +4,15 @@
  */
 package config;
 
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.core.Application;
+
 /**
  *
  * @author poema
  */
-public class AppConfig {
+
+@ApplicationPath("/api/v1")
+public class AppConfig extends Application {
     
 }
