@@ -12,9 +12,9 @@ package model;
 public class Sensor {
     private String id;
     private String type; // temp, CO2, etc
-    private String status; // Maintenance or Active
-    private double currentValue;
-    private String roomId;
+    private String status; // Maintenance or Active or offline
+    private double currentValue; // most recent record
+    private String roomId; // FK linking to room
 
     public Sensor() {}
 
