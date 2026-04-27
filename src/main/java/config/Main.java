@@ -18,15 +18,15 @@ public class Main {
     public static void main(String[] args) {
         
         String BASE_URI="http://localhost:8000";
-        //try{
+        try{
             HttpServer server = GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI),new AppConfig());
             
             System.out.println("The Server has been Initialized...");
-        /*}
+        }
         catch(Exception e)
         {
             System.out.println("The Server Failed to Initialize...");
         }
-        */
+        
     }
 }
