@@ -8,6 +8,43 @@ package resource;
  *
  * @author poema
  */
+
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.*;
+import model.*;
+
+import java.util.*;
+
+@Path("/")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+
 public class SensorReadingResource {
+    
+    private static Map<String, List<SensorReading>> readings= new HashMap<>();
+    
+    @GET
+    public List<SensorReading> getreadings(@PathParam("id") String sensorId){
+        return readings.getOrDefault(sensorId, new ArrayList<>());
+    }
+    
+    @POST
+    public Response addReading(@PathParam("id") String SensorID, SensorReading Reading){
+        Sensor sensor = SensorResource.getSensorsMap().get(SensorID);
+        
+        if(sensor==null){
+            throw new RuntimeException("Sensor not found");
+        }else{
+        sensor.setCurrentValue(Reading.getValue());
+        
+        readings.putIfAbsent(SensorID, new ArrayList<>());
+        readings.get(SensorID).add(Reading);
+        
+        return Response.status(201).entity(Reading).build();
+        }
+        
+        
+        
+    }
     
 }
