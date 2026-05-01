@@ -25,28 +25,41 @@
     <dependency>
         <groupId>org.glassfish.jersey.core</groupId>
         <artifactId>jersey-server</artifactId>
-        <version>3.1.5</version>
+        <version>3.1.9</version>   <!-- updated -->
     </dependency>
 
     <!-- REQUIRED: Dependency Injection system (THIS FIXES YOUR ERROR) -->
     <dependency>
         <groupId>org.glassfish.jersey.inject</groupId>
         <artifactId>jersey-hk2</artifactId>
-        <version>3.1.5</version>
+        <version>3.1.9</version>   <!-- updated -->
     </dependency>
 
     <!-- JSON support -->
     <dependency>
         <groupId>org.glassfish.jersey.media</groupId>
         <artifactId>jersey-media-json-jackson</artifactId>
-        <version>3.1.5</version>
+        <version>3.1.9</version>   <!-- updated -->
     </dependency>
 
     <!-- Grizzly server -->
     <dependency>
         <groupId>org.glassfish.jersey.containers</groupId>
         <artifactId>jersey-container-grizzly2-http</artifactId>
-        <version>3.1.5</version>
+        <version>3.1.5</version>   <!-- updated -->
+      <type>jar</type>
+    </dependency>
+    
+    <!-- JAXB API + Runtime – fixes "JAXBContext implementation could not be found" -->
+    <dependency>
+        <groupId>jakarta.xml.bind</groupId>
+        <artifactId>jakarta.xml.bind-api</artifactId>
+        <version>4.0.2</version>
+    </dependency>
+    <dependency>
+        <groupId>org.glassfish.jaxb</groupId>
+        <artifactId>jaxb-runtime</artifactId>
+        <version>4.0.5</version>
     </dependency>
 
 </dependencies>

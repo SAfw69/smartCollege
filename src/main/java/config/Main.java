@@ -20,8 +20,9 @@ public class Main {
         String BASE_URI="http://localhost:8000";
         try{
             HttpServer server = GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI),new AppConfig());
-            
+            server.start();
             System.out.println("The Server has been Initialized...");
+        
         }
         catch(Exception e)
         {
