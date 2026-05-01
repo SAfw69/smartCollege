@@ -12,6 +12,7 @@ package resource;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
 import model.*;
+import exceptions.*;
 
 import java.util.*;
 
@@ -29,7 +30,7 @@ public class SensorResource {
         Room room = RoomResource.getRooms().get(sensor.getRoomId());
 
         if (room == null) {
-            throw new RuntimeException("Invalid room");
+            throw new InvalidRoomException("Invalid room, Room does not exist.");
         }
 
         sensors.put(sensor.getId(), sensor);
@@ -52,6 +53,19 @@ public class SensorResource {
         return result;
     }
 
+    @GET
+    @Path("/{id}")
+    public Sensor getSensor(@PathParam("id") String id) {
+
+        Sensor sensor = sensors.get(id);
+
+        if (sensor == null) {
+            throw new ResourceNotFoundException("Sensor not found");
+        }
+
+        return sensor;
+    }
+    
     @Path("/{id}/readings")
     public SensorReadingResource getReadings() {
         return new SensorReadingResource();

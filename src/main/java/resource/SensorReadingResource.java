@@ -12,6 +12,7 @@ package resource;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
 import model.*;
+import exceptions.*;
 
 import java.util.*;
 
@@ -33,7 +34,9 @@ public class SensorReadingResource {
         Sensor sensor = SensorResource.getSensorsMap().get(SensorID);
         
         if(sensor==null){
-            throw new RuntimeException("Sensor not found");
+            throw new ResourceNotFoundException("Sensor not found");
+        }else if ("MAINTENANCE".equalsIgnoreCase(sensor.getStatus())) {
+            throw new SensorUnavailableException("Sensor under maintenance");
         }else{
         sensor.setCurrentValue(Reading.getValue());
         
