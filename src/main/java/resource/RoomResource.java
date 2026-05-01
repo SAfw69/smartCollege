@@ -34,12 +34,20 @@ public class RoomResource {
     public Response createRoom(Room room){
         rooms.put(room.getID(), room);
         return Response.status(201).entity(room).build();
+        
+        
     }
     
     @GET
     @Path("/{id}")
     public Room getRoom(@PathParam("id") String ID){
-        return rooms.get(ID);
+        
+        Room room = rooms.get(ID);
+        if (room == null) {
+            throw new ResourceNotFoundException("Room not found");
+        }
+
+        return room;
     }
     
     @DELETE
@@ -47,13 +55,16 @@ public class RoomResource {
     public Response deleteRoom(@PathParam("id") String id) {
 
         Room room = rooms.get(id);
+        
+        if(room == null){
+            throw new ResourceNotFoundException("Room not found");
 
-        if (!room.getSensorIds().isEmpty()) {
-            throw new exceptions.ResourceNotFoundException("Room Not Found");
-        }
-
+        }else if (!room.getSensorIds().isEmpty()) {
+            throw new RoomNotEmptyException("Room not empty");
+        }else{
         rooms.remove(id);
         return Response.ok().build();
+        }
     }
 
     public static Map<String, Room> getRooms() {
