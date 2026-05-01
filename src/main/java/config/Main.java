@@ -19,16 +19,16 @@ public class Main {
     public static void main(String[] args) throws IOException {
         
         String BASE_URI="http://localhost:8000";
-        //try{
+        try{
             HttpServer server = GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI),new AppConfig());
             server.start();
-            System.out.println("The Server has been Initialized...");
-        /*
+            System.out.println("The Server has been Initialized... \n");
+        
         }
         catch(Exception e)
         {
-            System.out.println("The Server Failed to Initialize...");
-        }*/
+            System.out.println("The Server Failed to Initialize... \n");
+        }
         
     }
 }
