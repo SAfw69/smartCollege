@@ -24,6 +24,6 @@ public class SensorUnavailableException extends RuntimeException{
      * @param msg the detail message.
      */
     public SensorUnavailableException(String msg) {
-        super(msg);
+        super("ERROR 403: Forbidden. "+msg);
     }
 }

@@ -25,6 +25,6 @@ public class RoomNotEmptyException extends RuntimeException {
      * @param msg the detail message.
      */
     public RoomNotEmptyException(String msg) {
-        super(msg);
+        super("ERROR 409: Conflict. "+msg);
     }
 }

@@ -12,6 +12,8 @@ package resource;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
 import model.Room;
+import exceptions.*;
+
 
 import java.util.*;
 
@@ -47,7 +49,7 @@ public class RoomResource {
         Room room = rooms.get(id);
 
         if (!room.getSensorIds().isEmpty()) {
-            throw new RuntimeException("Room not empty");
+            throw new exceptions.ResourceNotFoundException("Room Not Found");
         }
 
         rooms.remove(id);

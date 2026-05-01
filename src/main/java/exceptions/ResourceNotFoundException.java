@@ -24,6 +24,6 @@ public class ResourceNotFoundException extends RuntimeException{
      * @param msg the detail message.
      */
     public ResourceNotFoundException(String msg) {
-        super(msg);
+        super("ERROR 404: Resource Not Found. "+msg);
     }
 }

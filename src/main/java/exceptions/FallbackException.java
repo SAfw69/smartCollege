@@ -8,22 +8,22 @@ package exceptions;
  *
  * @author poema
  */
-public class InvalidRoomException extends RuntimeException{
+public class FallbackException extends RuntimeException{
 
     /**
-     * Creates a new instance of <code>InvalidRoomException</code> without
-     * detail message.
+     * Creates a new instance of <code>FallbackException</code> without detail
+     * message.
      */
-    public InvalidRoomException() {
+    public FallbackException() {
     }
 
     /**
-     * Constructs an instance of <code>InvalidRoomException</code> with the
+     * Constructs an instance of <code>FallbackException</code> with the
      * specified detail message.
      *
      * @param msg the detail message.
      */
-    public InvalidRoomException(String msg) {
-        super("ERROR 422: Unprocessable Entity. "+msg);
+    public FallbackException(String msg) {
+        super("ERROR 500: Fallback. "+msg);
     }
 }
