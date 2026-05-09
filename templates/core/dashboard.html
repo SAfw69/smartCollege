@@ -1,0 +1,197 @@
+{% extends 'core/base.html' %}
+{% block title %}Dashboard - Broadcast Registry{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start">
+  <div>
+    <h1>Dashboard</h1>
+    <p class="text-muted mb-0 small">Welcome back, {{ user.first_name|default:user.username }} — here's your engineering overview</p>
+  </div>
+  <a href="{% url 'team_create' %}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg me-1"></i>New Team
+  </a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#4361ee,#3a0ca3);">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="stat-value">{{ total_teams }}</div>
+          <div class="stat-label">Active Teams</div>
+        </div>
+        <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#7209b7,#560bad);">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="stat-value">{{ total_departments }}</div>
+          <div class="stat-label">Departments</div>
+        </div>
+        <div class="stat-icon"><i class="bi bi-building-fill"></i></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#06d6a0,#028090);">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="stat-value">{{ total_engineers }}</div>
+          <div class="stat-label">Engineers</div>
+        </div>
+        <div class="stat-icon"><i class="bi bi-person-badge-fill"></i></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card" style="background:linear-gradient(135deg,#f72585,#b5179e);">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="stat-value">{{ unread_messages }}</div>
+          <div class="stat-label">Unread Messages</div>
+        </div>
+        <div class="stat-icon"><i class="bi bi-chat-dots-fill"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center py-3">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-people-fill me-2 text-primary"></i>Recent Teams</h6>
+        <a href="{% url 'team_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <div class="card-body p-0">
+        {% if recent_teams %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-3">Team</th>
+                <th>Department</th>
+                <th>Manager</th>
+                <th>Members</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for team in recent_teams %}
+              <tr onclick="window.location='{% url 'team_detail' team.pk %}'" style="cursor:pointer;">
+                <td class="ps-3">
+                  <div class="fw-semibold">{{ team.team_name }}</div>
+                  <small class="text-muted">{{ team.description|truncatechars:40 }}</small>
+                </td>
+                <td><span class="dept-badge">{{ team.department.department_name }}</span></td>
+                <td>
+                  {% if team.manager %}
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="avatar-circle" style="background:#e0e7ff;color:#4361ee;">{{ team.manager.first_name.0|upper|default:team.manager.username.0|upper }}</div>
+                    <span class="small">{{ team.manager.get_full_name|default:team.manager.username }}</span>
+                  </div>
+                  {% else %}<span class="text-muted small">Unassigned</span>{% endif %}
+                </td>
+                <td><span class="badge bg-light text-dark">{{ team.get_member_count }}</span></td>
+                <td>
+                  <span class="badge badge-status-{{ team.status }} rounded-pill px-2">{{ team.get_status_display }}</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+          <i class="bi bi-people fs-2 d-block mb-2"></i>No teams yet. <a href="{% url 'team_create' %}">Create the first one</a>.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header py-3">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-building-fill me-2 text-purple" style="color:#7209b7;"></i>Teams by Department</h6>
+      </div>
+      <div class="card-body">
+        {% for dept in departments %}
+        <div class="d-flex align-items-center mb-3">
+          <div class="me-3" style="width:120px;">
+            <a href="{% url 'department_detail' dept.pk %}" class="text-decoration-none fw-semibold small text-dark">{{ dept.department_name }}</a>
+          </div>
+          <div class="flex-grow-1">
+            <div class="progress" style="height:10px;border-radius:5px;">
+              <div class="progress-bar" style="width:{% if total_teams %}{% widthratio dept.team_count total_teams 100 %}%{% else %}0%{% endif %};background:linear-gradient(90deg,#4361ee,#7209b7);"></div>
+            </div>
+          </div>
+          <div class="ms-3 badge bg-light text-dark">{{ dept.team_count }}</div>
+        </div>
+        {% empty %}
+        <p class="text-muted mb-0">No departments yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center py-3">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-calendar-event-fill me-2" style="color:#06d6a0;"></i>Upcoming Meetings</h6>
+        <a href="{% url 'meeting_list' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+      </div>
+      <div class="card-body p-0">
+        {% for meeting in upcoming_meetings %}
+        <a href="{% url 'meeting_detail' meeting.pk %}" class="text-decoration-none">
+          <div class="p-3 border-bottom hover-bg" style="transition:background 0.2s;">
+            <div class="d-flex align-items-start gap-2">
+              <div class="text-center rounded p-1" style="background:#e0e7ff;min-width:40px;">
+                <div class="fw-bold text-primary" style="font-size:1.1rem;line-height:1;">{{ meeting.meeting_date|date:"d" }}</div>
+                <div class="text-muted" style="font-size:0.65rem;text-transform:uppercase;">{{ meeting.meeting_date|date:"M" }}</div>
+              </div>
+              <div class="flex-grow-1 overflow-hidden">
+                <div class="fw-semibold text-dark small text-truncate">{{ meeting.title }}</div>
+                <div class="text-muted" style="font-size:0.75rem;">{{ meeting.team.team_name }} • {{ meeting.meeting_time|time:"H:i" }}</div>
+                <div class="badge bg-light text-muted mt-1" style="font-size:0.7rem;">{{ meeting.get_platform_display }}</div>
+              </div>
+            </div>
+          </div>
+        </a>
+        {% empty %}
+        <div class="p-3 text-center text-muted small">
+          <i class="bi bi-calendar-x fs-3 d-block mb-1"></i>No upcoming meetings
+        </div>
+        {% endfor %}
+        <div class="p-2">
+          <a href="{% url 'meeting_create' %}" class="btn btn-outline-primary btn-sm w-100">
+            <i class="bi bi-plus-lg me-1"></i>Schedule Meeting
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header py-3">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2" style="color:#ffd60a;"></i>Recent Activity</h6>
+      </div>
+      <div class="card-body p-0">
+        {% for log in recent_activity %}
+        <div class="px-3 py-2 border-bottom d-flex align-items-start gap-2">
+          <div class="rounded-circle mt-1" style="width:8px;height:8px;background:{% if log.action == 'create' %}#06d6a0{% elif log.action == 'update' %}#4361ee{% elif log.action == 'delete' %}#f72585{% else %}#8b949e{% endif %};flex-shrink:0;"></div>
+          <div class="overflow-hidden">
+            <div class="small text-dark text-truncate">
+              <strong>{{ log.user.username|default:"System" }}</strong> {{ log.action }}d {{ log.model_name|lower }}
+              {% if log.object_repr %}<span class="text-muted">· {{ log.object_repr|truncatechars:25 }}</span>{% endif %}
+            </div>
+            <div class="text-muted" style="font-size:0.7rem;">{{ log.timestamp|timesince }} ago</div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="p-3 text-center text-muted small">No activity yet</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

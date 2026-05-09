@@ -1,0 +1,49 @@
+{% extends 'core/base.html' %}
+{% block title %}Login - Broadcast Registry{% endblock %}
+{% block full_content %}
+<div class="min-vh-100 d-flex" style="background:linear-gradient(135deg,#0d1117,#1a1a2e);">
+  <div class="d-none d-lg-flex col-lg-6 align-items-center justify-content-center p-5">
+    <div class="text-white text-center" style="max-width:400px;">
+      <div style="font-size:5rem;color:#4361ee;" class="mb-4"><i class="bi bi-broadcast"></i></div>
+      <h2 class="fw-bold mb-3">Broadcast Registry</h2>
+      <p style="color:#8b949e;">Your central hub for engineering team discovery, dependency mapping, and collaboration.</p>
+    </div>
+  </div>
+  <div class="col-12 col-lg-6 d-flex align-items-center justify-content-center p-4" style="background:rgba(255,255,255,0.03);backdrop-filter:blur(10px);">
+    <div class="w-100" style="max-width:420px;">
+      <div class="mb-4">
+        <a href="/" class="d-flex align-items-center gap-2 text-decoration-none mb-4">
+          <div style="width:36px;height:36px;background:#4361ee;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-broadcast text-white"></i>
+          </div>
+          <span class="text-white fw-bold">Broadcast Registry</span>
+        </a>
+        <h3 class="text-white fw-bold mb-1">Welcome back</h3>
+        <p style="color:#8b949e;">Sign in to access the team registry</p>
+      </div>
+      {% if form.non_field_errors %}
+      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+      {% endif %}
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label text-white-50 small fw-semibold">Username</label>
+          <input type="text" name="username" class="form-control bg-dark text-white border-secondary" placeholder="Enter your username" style="border-color:#30363d!important;">
+          {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors }}</div>{% endif %}
+        </div>
+        <div class="mb-4">
+          <label class="form-label text-white-50 small fw-semibold">Password</label>
+          <input type="password" name="password" class="form-control bg-dark text-white border-secondary" placeholder="Enter your password" style="border-color:#30363d!important;">
+          {% if form.password.errors %}<div class="text-danger small mt-1">{{ form.password.errors }}</div>{% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+          <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+        </button>
+      </form>
+      <div class="text-center mt-4" style="color:#8b949e;">
+        Don't have an account? <a href="{% url 'register' %}" class="text-primary text-decoration-none fw-semibold">Sign up</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

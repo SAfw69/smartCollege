@@ -1,0 +1,169 @@
+{% extends 'core/base.html' %}
+{% block title %}Teams - Broadcast Registry{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start">
+  <div>
+    <h1>Engineering Teams</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li><li class="breadcrumb-item active">Teams</li></ol></nav>
+  </div>
+  <a href="{% url 'team_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>New Team</a>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body py-3">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-5">
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" name="q" value="{{ query }}" class="form-control border-start-0 ps-0" placeholder="Search teams, managers, skills...">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <select name="department" class="form-select">
+          <option value="">All Departments</option>
+          {% for dept in departments %}
+          <option value="{{ dept.id }}" {% if selected_department == dept.id|stringformat:"s" %}selected{% endif %}>{{ dept.department_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="status" class="form-select">
+          <option value="">All Status</option>
+          <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Active</option>
+          <option value="restructuring" {% if selected_status == 'restructuring' %}selected{% endif %}>Restructuring</option>
+          <option value="disbanded" {% if selected_status == 'disbanded' %}selected{% endif %}>Disbanded</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-primary flex-grow-1">Filter</button>
+        {% if query or selected_department or selected_status %}
+        <a href="{% url 'team_list' %}" class="btn btn-outline-secondary"><i class="bi bi-x"></i></a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <span class="text-muted small">{{ teams|length }} team{{ teams|length|pluralize }} found</span>
+  <div class="btn-group btn-group-sm" id="viewToggle">
+    <button class="btn btn-outline-secondary active" onclick="setView('grid')" id="gridBtn"><i class="bi bi-grid-3x3-gap"></i></button>
+    <button class="btn btn-outline-secondary" onclick="setView('list')" id="listBtn"><i class="bi bi-list-ul"></i></button>
+  </div>
+</div>
+
+<div id="gridView" class="row g-3">
+  {% for team in teams %}
+  <div class="col-sm-6 col-xl-4">
+    <div class="card team-card h-100" onclick="window.location='{% url 'team_detail' team.pk %}'">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <span class="dept-badge">{{ team.department.department_name }}</span>
+          <span class="badge badge-status-{{ team.status }} rounded-pill">{{ team.get_status_display }}</span>
+        </div>
+        <h6 class="fw-bold mb-1">{{ team.team_name }}</h6>
+        <p class="text-muted small mb-3">{{ team.description|truncatechars:80 }}</p>
+        {% if team.get_skills_list %}
+        <div class="mb-3 d-flex flex-wrap gap-1">
+          {% for skill in team.get_skills_list|slice:":4" %}
+          <span class="badge" style="background:#e8ecff;color:#4361ee;font-size:0.7rem;">{{ skill }}</span>
+          {% endfor %}
+          {% if team.get_skills_list|length > 4 %}<span class="badge bg-light text-muted">+{{ team.get_skills_list|length|add:"-4" }}</span>{% endif %}
+        </div>
+        {% endif %}
+        <div class="d-flex align-items-center gap-3 text-muted" style="font-size:0.8rem;">
+          <span><i class="bi bi-people me-1"></i>{{ team.get_member_count }} members</span>
+          {% if team.manager %}
+          <span><i class="bi bi-person-check me-1"></i>{{ team.manager.get_full_name|default:team.manager.username|truncatechars:15 }}</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="card-footer bg-white py-2 border-top d-flex justify-content-between align-items-center">
+        {% if team.email %}
+        <a href="{% url 'message_compose' %}?team={{ team.pk }}" class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation()">
+          <i class="bi bi-envelope me-1"></i>Email
+        </a>
+        {% else %}<div></div>{% endif %}
+        <a href="{% url 'meeting_create' %}?team={{ team.pk }}" class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation()">
+          <i class="bi bi-calendar-plus me-1"></i>Schedule
+        </a>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12 text-center py-5">
+    <i class="bi bi-people fs-1 text-muted d-block mb-2"></i>
+    <h5 class="text-muted">No teams found</h5>
+    <p class="text-muted">Try adjusting your search filters or <a href="{% url 'team_create' %}">create a new team</a>.</p>
+  </div>
+  {% endfor %}
+</div>
+
+<div id="listView" class="d-none">
+  <div class="card">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">Team Name</th>
+              <th>Department</th>
+              <th>Manager</th>
+              <th>Members</th>
+              <th>Skills</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for team in teams %}
+            <tr>
+              <td class="ps-3">
+                <a href="{% url 'team_detail' team.pk %}" class="fw-semibold text-dark text-decoration-none">{{ team.team_name }}</a>
+                <div class="text-muted small">{{ team.description|truncatechars:50 }}</div>
+              </td>
+              <td><span class="dept-badge">{{ team.department.department_name }}</span></td>
+              <td>{{ team.manager.get_full_name|default:team.manager.username|default:"—" }}</td>
+              <td>{{ team.get_member_count }}</td>
+              <td>
+                {% for skill in team.get_skills_list|slice:":2" %}
+                <span class="badge me-1" style="background:#e8ecff;color:#4361ee;font-size:0.7rem;">{{ skill }}</span>
+                {% endfor %}
+              </td>
+              <td><span class="badge badge-status-{{ team.status }} rounded-pill">{{ team.get_status_display }}</span></td>
+              <td>
+                <a href="{% url 'team_detail' team.pk %}" class="btn btn-sm btn-outline-primary me-1">View</a>
+                <a href="{% url 'team_edit' team.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-center py-4 text-muted">No teams found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function setView(v) {
+  if (v === 'grid') {
+    document.getElementById('gridView').classList.remove('d-none');
+    document.getElementById('listView').classList.add('d-none');
+    document.getElementById('gridBtn').classList.add('active');
+    document.getElementById('listBtn').classList.remove('active');
+  } else {
+    document.getElementById('listView').classList.remove('d-none');
+    document.getElementById('gridView').classList.add('d-none');
+    document.getElementById('listBtn').classList.add('active');
+    document.getElementById('gridBtn').classList.remove('active');
+  }
+  localStorage.setItem('teamView', v);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  const saved = localStorage.getItem('teamView');
+  if (saved === 'list') setView('list');
+});
+</script>
+{% endblock %}

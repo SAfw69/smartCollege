@@ -1,0 +1,92 @@
+{% extends 'core/base.html' %}
+{% block title %}Messages - Broadcast Registry{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start">
+  <div>
+    <h1>Messages</h1>
+    {% if unread_count %}<span class="badge bg-danger ms-2">{{ unread_count }} unread</span>{% endif %}
+  </div>
+  <a href="{% url 'message_compose' %}" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i>Compose</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-3">
+    <div class="card">
+      <div class="card-body p-2">
+        <nav class="nav flex-column gap-1">
+          <a href="{% url 'message_inbox' %}" class="nav-link rounded {% if view == 'inbox' %}active bg-primary text-white{% else %}text-dark{% endif %} d-flex align-items-center gap-2">
+            <i class="bi bi-inbox-fill"></i> Inbox
+            {% if unread_count %}<span class="badge bg-danger ms-auto">{{ unread_count }}</span>{% endif %}
+          </a>
+          <a href="{% url 'message_sent' %}" class="nav-link rounded {% if view == 'sent' %}active bg-primary text-white{% else %}text-dark{% endif %} d-flex align-items-center gap-2">
+            <i class="bi bi-send-fill"></i> Sent
+          </a>
+          <a href="{% url 'message_drafts' %}" class="nav-link rounded {% if view == 'drafts' %}active bg-primary text-white{% else %}text-dark{% endif %} d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-text"></i> Drafts
+          </a>
+          <hr class="my-2">
+          <a href="{% url 'message_compose' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-plus me-1"></i>New Message</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-9">
+    <div class="card">
+      <div class="card-body p-0">
+        {% if messages_list %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-3" style="width:30px;"></th>
+                <th>{% if view == 'inbox' %}From{% else %}To{% endif %}</th>
+                <th>Subject</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for msg in messages_list %}
+              <tr class="message-row {% if not msg.is_read and view == 'inbox' %}unread{% endif %}" onclick="window.location='{% url 'message_detail' msg.pk %}'">
+                <td class="ps-3">{% if not msg.is_read and view == 'inbox' %}<span class="unread-dot"></span>{% endif %}</td>
+                <td>
+                  {% if view == 'inbox' %}
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="avatar-circle" style="background:#e0e7ff;color:#4361ee;">{{ msg.sender.first_name.0|upper|default:msg.sender.username.0|upper }}</div>
+                    {{ msg.sender.get_full_name|default:msg.sender.username }}
+                  </div>
+                  {% else %}
+                  {% if msg.receiver_team %}<span class="dept-badge">{{ msg.receiver_team.team_name }}</span>{% elif msg.receiver_user %}{{ msg.receiver_user.get_full_name|default:msg.receiver_user.username }}{% else %}—{% endif %}
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="{% if not msg.is_read and view == 'inbox' %}fw-bold{% endif %}">{{ msg.subject|default:"(No Subject)" }}</div>
+                  <small class="text-muted">{{ msg.message_content|truncatechars:60 }}</small>
+                </td>
+                <td><span class="text-muted small">{{ msg.timestamp|date:"d M Y H:i" }}</span></td>
+                <td>
+                  <a href="{% url 'message_detail' msg.pk %}" class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation()"><i class="bi bi-eye"></i></a>
+                  {% if msg.sender == request.user and view == 'drafts' %}
+                  <a href="{% url 'message_edit_draft' msg.pk %}" class="btn btn-sm btn-outline-primary ms-1" onclick="event.stopPropagation()"><i class="bi bi-pencil"></i></a>
+                  {% endif %}
+                  {% if msg.sender == request.user %}
+                  <a href="{% url 'message_delete' msg.pk %}" class="btn btn-sm btn-outline-danger ms-1" onclick="event.stopPropagation()"><i class="bi bi-trash"></i></a>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="p-5 text-center text-muted">
+          <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+          <h6>{% if view == 'inbox' %}Your inbox is empty{% elif view == 'sent' %}No sent messages{% else %}No drafts{% endif %}</h6>
+          <a href="{% url 'message_compose' %}" class="btn btn-primary btn-sm mt-2"><i class="bi bi-pencil-square me-1"></i>Compose</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

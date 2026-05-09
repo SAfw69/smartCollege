@@ -1,0 +1,126 @@
+{% extends 'core/base.html' %}
+{% block title %}Organisation Chart - Broadcast Registry{% endblock %}
+{% block extra_css %}
+<style>
+#org-network { width: 100%; height: 600px; border: 1px solid #e8ecef; border-radius: 12px; background: #fff; }
+.legend-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start">
+  <div>
+    <h1>Organisation Chart</h1>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li><li class="breadcrumb-item active">Organisation</li></ol></nav>
+  </div>
+  <div class="d-flex gap-2">
+    <button class="btn btn-outline-secondary btn-sm" id="fitBtn"><i class="bi bi-arrows-fullscreen me-1"></i>Fit</button>
+    <button class="btn btn-outline-secondary btn-sm" id="exportBtn"><i class="bi bi-download me-1"></i>Export</button>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body py-2 d-flex flex-wrap gap-3 align-items-center">
+    <div class="d-flex align-items-center gap-2 small"><span class="legend-dot bg-primary"></span> Department</div>
+    <div class="d-flex align-items-center gap-2 small"><span class="legend-dot" style="background:#4361ee80;"></span> Team</div>
+    <div class="d-flex align-items-center gap-2 small"><span class="legend-dot bg-danger"></span> Upstream Dep.</div>
+    <div class="d-flex align-items-center gap-2 small"><span class="legend-dot" style="background:#4cc9f0;"></span> Downstream Dep.</div>
+    <div class="ms-auto d-flex gap-2">
+      <select id="filterDept" class="form-select form-select-sm" style="width:200px;">
+        <option value="">All Departments</option>
+        {% for dept in departments %}
+        <option value="dept_{{ dept.id }}">{{ dept.department_name }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn btn-sm btn-primary" onclick="applyFilter()">Filter</button>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body p-2">
+    <div id="org-network"></div>
+  </div>
+</div>
+
+<div class="row g-3 mt-1">
+  {% for dept in departments %}
+  <div class="col-md-6 col-xl-4">
+    <div class="card h-100">
+      <div class="card-header py-2 d-flex justify-content-between align-items-center">
+        <span class="fw-bold small">{{ dept.department_name }}</span>
+        <span class="badge bg-light text-dark">{{ dept.teams.all|length }} teams</span>
+      </div>
+      <div class="card-body p-2">
+        {% for team in dept.teams.all %}
+        {% if team.status == 'active' %}
+        <a href="{% url 'team_detail' team.pk %}" class="d-flex align-items-center gap-2 p-2 rounded hover-bg text-decoration-none text-dark mb-1" style="font-size:0.85rem;">
+          <div class="rounded-circle bg-primary" style="width:8px;height:8px;flex-shrink:0;"></div>
+          <span class="flex-grow-1">{{ team.team_name }}</span>
+          <span class="badge bg-light text-muted">{{ team.get_member_count }}</span>
+        </a>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<script>
+let network, allNodes, allEdges;
+
+fetch("{% url 'org_chart_data' %}")
+  .then(r => r.json())
+  .then(data => {
+    const nodes = new vis.DataSet(data.nodes.map(n => ({
+      id: n.id, label: n.label,
+      color: { background: n.color, border: n.color, highlight: { background: '#fff', border: n.color } },
+      shape: n.shape || 'ellipse',
+      font: { size: n.type === 'department' ? 14 : 12, bold: n.type === 'department' },
+      size: n.type === 'department' ? 20 : 14,
+      title: n.type === 'team' ? `Manager: ${n.manager}\nMembers: ${n.members}` : n.label,
+    })));
+    const edges = new vis.DataSet(data.edges.map(e => ({
+      from: e.from, to: e.to,
+      arrows: e.arrows || 'to',
+      color: { color: e.color || '#ccc', opacity: 0.8 },
+      label: e.type !== 'belongs_to' ? e.label : '',
+      dashes: e.dashes || false,
+      font: { size: 10, color: '#888' },
+      width: e.type === 'belongs_to' ? 1 : 2,
+    })));
+    allNodes = data.nodes;
+    allEdges = data.edges;
+    const container = document.getElementById('org-network');
+    network = new vis.Network(container, { nodes, edges }, {
+      layout: { hierarchical: { enabled: true, direction: 'UD', sortMethod: 'directed', levelSeparation: 120, nodeSpacing: 150 } },
+      physics: { enabled: false },
+      interaction: { hover: true, tooltipDelay: 200 },
+      nodes: { borderWidth: 2, shadow: { enabled: true, size: 4 } },
+      edges: { smooth: { type: 'cubicBezier' } },
+    });
+    network.on('click', function(params) {
+      if (params.nodes.length > 0) {
+        const nodeId = params.nodes[0];
+        if (nodeId.startsWith('team_')) {
+          const id = nodeId.replace('team_', '');
+          window.location.href = `/teams/${id}/`;
+        }
+      }
+    });
+  });
+
+document.getElementById('fitBtn').onclick = () => network && network.fit({ animation: true });
+
+function applyFilter() {
+  const val = document.getElementById('filterDept').value;
+  // Network filtering handled by vis-network focus
+  if (val && network) {
+    network.focus(val, { scale: 1.2, animation: true });
+  } else if (network) {
+    network.fit({ animation: true });
+  }
+}
+</script>
+{% endblock %}

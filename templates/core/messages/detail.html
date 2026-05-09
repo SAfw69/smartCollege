@@ -1,0 +1,36 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ message.subject|default:"Message" }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{% url 'message_inbox' %}">Messages</a></li><li class="breadcrumb-item active">{{ message.subject|default:"View Message" }}</li></ol></nav>
+  <div class="d-flex justify-content-between align-items-start">
+    <h1>{{ message.subject|default:"(No Subject)" }}</h1>
+    {% if message.sender == request.user %}
+    <a href="{% url 'message_delete' message.pk %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Delete</a>
+    {% endif %}
+  </div>
+</div>
+<div class="row"><div class="col-lg-8">
+  <div class="card">
+    <div class="card-header py-3">
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="d-flex align-items-center gap-3">
+          <div class="avatar-circle" style="width:44px;height:44px;background:linear-gradient(135deg,#4361ee,#7209b7);color:white;">{{ message.sender.first_name.0|upper|default:message.sender.username.0|upper }}</div>
+          <div>
+            <div class="fw-bold">{{ message.sender.get_full_name|default:message.sender.username }}</div>
+            <small class="text-muted">
+              To: {% if message.receiver_team %}Team: {{ message.receiver_team.team_name }}{% elif message.receiver_user %}{{ message.receiver_user.get_full_name|default:message.receiver_user.username }}{% else %}—{% endif %}
+            </small>
+          </div>
+        </div>
+        <span class="text-muted small">{{ message.timestamp|date:"d M Y, H:i" }}</span>
+      </div>
+    </div>
+    <div class="card-body" style="white-space:pre-wrap;line-height:1.7;">{{ message.message_content }}</div>
+    <div class="card-footer py-2">
+      <a href="{% url 'message_compose' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-reply me-1"></i>Reply</a>
+      <a href="{% url 'message_inbox' %}" class="btn btn-sm btn-outline-secondary ms-2"><i class="bi bi-arrow-left me-1"></i>Back</a>
+    </div>
+  </div>
+</div></div>
+{% endblock %}

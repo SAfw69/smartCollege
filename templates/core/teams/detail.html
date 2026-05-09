@@ -1,0 +1,247 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ team.team_name }} - Broadcast Registry{% endblock %}
+{% block content %}
+<div class="page-header">
+  <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li><li class="breadcrumb-item"><a href="{% url 'team_list' %}">Teams</a></li><li class="breadcrumb-item active">{{ team.team_name }}</li></ol></nav>
+  <div class="d-flex justify-content-between align-items-start mt-2">
+    <div>
+      <h1>{{ team.team_name }}</h1>
+      <div class="d-flex align-items-center gap-2 mt-1">
+        <span class="dept-badge">{{ team.department.department_name }}</span>
+        <span class="badge badge-status-{{ team.status }} rounded-pill">{{ team.get_status_display }}</span>
+        {% if team.team_type %}<span class="badge bg-light text-muted rounded-pill">{{ team.team_type }}</span>{% endif %}
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'meeting_create' %}?team={{ team.pk }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-calendar-plus me-1"></i>Schedule</a>
+      <a href="{% url 'message_compose' %}?team={{ team.pk }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-envelope me-1"></i>Email Team</a>
+      <a href="{% url 'team_edit' team.pk %}" class="btn btn-primary btn-sm"><i class="bi bi-pencil me-1"></i>Edit</a>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    {% if team.mission %}
+    <div class="card mb-3">
+      <div class="card-body">
+        <h6 class="fw-bold mb-2"><i class="bi bi-flag-fill me-2 text-primary"></i>Mission</h6>
+        <p class="mb-0">{{ team.mission }}</p>
+      </div>
+    </div>
+    {% endif %}
+    {% if team.responsibilities %}
+    <div class="card mb-3">
+      <div class="card-body">
+        <h6 class="fw-bold mb-2"><i class="bi bi-check2-circle me-2 text-success"></i>Responsibilities</h6>
+        <p class="mb-0">{{ team.responsibilities }}</p>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center py-3">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-people-fill me-2 text-primary"></i>Team Members ({{ members|length }})</h6>
+        <a href="{% url 'team_add_member' team.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-person-plus me-1"></i>Add Member</a>
+      </div>
+      <div class="card-body p-0">
+        {% if members %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light"><tr><th class="ps-3">Name</th><th>Username</th><th>Role in Team</th><th>Join Date</th><th>Actions</th></tr></thead>
+            <tbody>
+              {% for member in members %}
+              <tr>
+                <td class="ps-3">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="avatar-circle" style="background:#e0e7ff;color:#4361ee;">{{ member.user.first_name.0|upper|default:member.user.username.0|upper }}</div>
+                    <div>
+                      <div class="fw-semibold">{{ member.user.get_full_name|default:member.user.username }}</div>
+                      <small class="text-muted">{{ member.user.email }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td><code>{{ member.user.username }}</code></td>
+                <td>{{ member.role_in_team|default:"Engineer" }}</td>
+                <td><span class="text-muted small">{{ member.join_date|date:"d M Y" }}</span></td>
+                <td>
+                  <form action="{% url 'team_remove_member' team.pk member.pk %}" method="post" class="d-inline" onsubmit="return confirm('Remove this member?')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-person-dash"></i></button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+          <i class="bi bi-person-plus fs-2 d-block mb-2"></i>No members yet. <a href="{% url 'team_add_member' team.pk %}">Add the first member</a>.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center py-3">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-code-square me-2" style="color:#7209b7;"></i>Code Repositories</h6>
+        <a href="{% url 'team_add_repo' team.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-plus me-1"></i>Add Repo</a>
+      </div>
+      <div class="card-body">
+        {% if repositories %}
+        <div class="row g-2">
+          {% for repo in repositories %}
+          <div class="col-md-6">
+            <div class="border rounded p-3">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <div class="fw-semibold small">{{ repo.name }}</div>
+                  {% if repo.language %}<span class="badge" style="background:#fff0f6;color:#c73b8c;font-size:0.7rem;">{{ repo.language }}</span>{% endif %}
+                  <p class="text-muted small mb-0 mt-1">{{ repo.description|truncatechars:60 }}</p>
+                </div>
+                <a href="{{ repo.url }}" target="_blank" class="btn btn-sm btn-outline-secondary ms-2"><i class="bi bi-box-arrow-up-right"></i></a>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted mb-0 small"><i class="bi bi-code-slash me-2"></i>No repositories linked yet.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header py-3">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-calendar3 me-2 text-success"></i>Recent Meetings</h6>
+      </div>
+      <div class="card-body p-0">
+        {% if recent_meetings %}
+        {% for meeting in recent_meetings %}
+        <a href="{% url 'meeting_detail' meeting.pk %}" class="text-decoration-none">
+          <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+            <div>
+              <div class="fw-semibold text-dark small">{{ meeting.title }}</div>
+              <span class="text-muted" style="font-size:0.75rem;">{{ meeting.meeting_date }} {{ meeting.meeting_time|time:"H:i" }} · {{ meeting.get_platform_display }}</span>
+            </div>
+            <span class="badge badge-status-{{ meeting.status }}">{{ meeting.get_status_display }}</span>
+          </div>
+        </a>
+        {% endfor %}
+        {% else %}
+        <div class="p-3 text-center text-muted small">No meetings yet.</div>
+        {% endif %}
+        <div class="p-2">
+          <a href="{% url 'meeting_create' %}?team={{ team.pk }}" class="btn btn-outline-success btn-sm w-100">
+            <i class="bi bi-calendar-plus me-1"></i>Schedule New Meeting
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-header py-3"><h6 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2"></i>Contact & Channels</h6></div>
+      <div class="card-body">
+        {% if team.manager %}
+        <div class="mb-3 pb-3 border-bottom">
+          <div class="text-muted small mb-1">Manager</div>
+          <div class="d-flex align-items-center gap-2">
+            <div class="avatar-circle" style="background:#e0e7ff;color:#4361ee;">{{ team.manager.first_name.0|upper|default:team.manager.username.0|upper }}</div>
+            <div>
+              <div class="fw-semibold">{{ team.manager.get_full_name|default:team.manager.username }}</div>
+              <small class="text-muted">{{ team.manager.email }}</small>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        {% if team.email %}
+        <div class="mb-2 d-flex align-items-center gap-2">
+          <i class="bi bi-envelope text-primary"></i>
+          <a href="mailto:{{ team.email }}" class="text-decoration-none small">{{ team.email }}</a>
+        </div>
+        {% endif %}
+        {% if team.slack_channel %}
+        <div class="mb-2 d-flex align-items-center gap-2">
+          <i class="bi bi-slack" style="color:#4a154b;"></i>
+          <span class="small">{{ team.slack_channel }}</span>
+        </div>
+        {% endif %}
+        {% if team.teams_channel %}
+        <div class="mb-2 d-flex align-items-center gap-2">
+          <i class="bi bi-microsoft-teams" style="color:#5558af;"></i>
+          <span class="small">{{ team.teams_channel }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if skills %}
+    <div class="card mb-3">
+      <div class="card-header py-3"><h6 class="mb-0 fw-bold"><i class="bi bi-lightning-fill me-2 text-warning"></i>Skills</h6></div>
+      <div class="card-body">
+        <div class="d-flex flex-wrap gap-2">
+          {% for skill in skills %}
+          <span class="badge px-3 py-2 rounded-pill" style="background:#e8ecff;color:#4361ee;font-size:0.8rem;">{{ skill }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card mb-3">
+      <div class="card-header py-3 d-flex justify-content-between">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-arrow-left-right me-2" style="color:#f72585;"></i>Dependencies</h6>
+        <a href="{% url 'team_add_dependency' team.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-plus"></i></a>
+      </div>
+      <div class="card-body">
+        {% if upstream_deps %}
+        <div class="mb-3">
+          <div class="text-muted small fw-semibold mb-2">UPSTREAM (depends on)</div>
+          {% for dep in upstream_deps %}
+          <div class="mb-1">
+            <span class="dependency-tag dependency-upstream">
+              <i class="bi bi-arrow-up-circle-fill"></i>
+              <a href="{% url 'team_detail' dep.to_team.pk %}" class="text-inherit text-decoration-none">{{ dep.to_team.team_name }}</a>
+            </span>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% if downstream_deps %}
+        <div>
+          <div class="text-muted small fw-semibold mb-2">DOWNSTREAM (depended on by)</div>
+          {% for dep in downstream_deps %}
+          <div class="mb-1">
+            <span class="dependency-tag dependency-downstream">
+              <i class="bi bi-arrow-down-circle-fill"></i>
+              <a href="{% url 'team_detail' dep.to_team.pk %}" class="text-inherit text-decoration-none">{{ dep.to_team.team_name }}</a>
+            </span>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% if not upstream_deps and not downstream_deps %}
+        <p class="text-muted small mb-0">No dependencies mapped yet.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <h6 class="fw-bold mb-3">Actions</h6>
+        <div class="d-grid gap-2">
+          <a href="{% url 'team_edit' team.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil me-2"></i>Edit Team</a>
+          <a href="{% url 'team_add_member' team.pk %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-person-plus me-2"></i>Add Member</a>
+          <a href="{% url 'team_add_dependency' team.pk %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-link me-2"></i>Add Dependency</a>
+          <a href="{% url 'team_add_repo' team.pk %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-code-square me-2"></i>Add Repository</a>
+          <a href="{% url 'message_compose' %}?team={{ team.pk }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-envelope me-2"></i>Send Message</a>
+          <a href="{% url 'team_delete' team.pk %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-x-circle me-2"></i>Disband Team</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
